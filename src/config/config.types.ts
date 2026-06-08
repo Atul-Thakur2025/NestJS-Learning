@@ -13,5 +13,5 @@ export const configValidationSchema = joi.object({
     DB_PORT : joi.string().required().default('3306'),
     DB_USERNAME : joi.string().required().default('root'),
     DB_PASSWORD : joi.string().required().default('12345'),
-    DB_NAME : joi.string().required().default('tasks'),
+    DB_NAME : joi.string().required().default('todo_app'),
 });

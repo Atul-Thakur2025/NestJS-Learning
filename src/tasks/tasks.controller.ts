@@ -11,15 +11,15 @@ export class TasksController {
     constructor(private readonly tasksService: TasksService){};
 
     @Get()
-    public findAllTasks() : tasksModel[] 
+    public async findAllTasks() : Promise<tasksModel[]> 
     {
-        return this.tasksService.findAllTasks();
+        return await this.tasksService.findAllTasks();
     }
 
     @Get(':id')
-    public findTaskById(@Param('id') id: string) : tasksModel | undefined 
+    public async findTaskById(@Param('id') id: string) : Promise<tasksModel | null> 
     {
-        const taks = this.tasksService.findTaskById(id);
+        const taks = await this.tasksService.findTaskById(id);
         if(taks){
             return taks;
         }
@@ -28,16 +28,16 @@ export class TasksController {
     }
 
     @Post()
-    public createTask(@Body() createTaskDto : createTaskDto) {
-        return this.tasksService.createTask(createTaskDto);
+    public async createTask(@Body() createTaskDto : createTaskDto) {
+        return await this.tasksService.createTask(createTaskDto);
     }
 
     @Patch('/:id/status')
-    public updateTaskStatus(
+    public async updateTaskStatus(
         @Param('id') id: string, 
         @Body() updateTaskStatusDto : updateTaskStatusDto
     ) {
-        const updateTaskStatus = this.tasksService.updateTaskStatus(id, updateTaskStatusDto.status);
+        const updateTaskStatus = await this.tasksService.updateTaskStatus(id, updateTaskStatusDto.status);
         if(updateTaskStatus){
             return updateTaskStatus;
         }
@@ -45,12 +45,12 @@ export class TasksController {
     }
 
     @Put('/:id')
-    public updateTask(
+    public async updateTask(
         @Param('id') id: string,
         @Body() updateTaskDto : updateTaskDto
     )
     {
-        const updatedTask = this.tasksService.updateTask(id, updateTaskDto);
+        const updatedTask = await this.tasksService.updateTask(id, updateTaskDto);
         if(updatedTask){
             return updatedTask;
         }
@@ -58,9 +58,9 @@ export class TasksController {
     }
 
     @Delete('/:id')
-    public deleteTaks(@Param('id') id : string)
+    public async deleteTaks(@Param('id') id : string)
     {
-        const isDeleted = this.tasksService.deleteTask(id);
+        const isDeleted = await this.tasksService.deleteTask(id);
         if(isDeleted){
             return {message : "Task deleted successfully"};
         }

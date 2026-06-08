@@ -3,65 +3,70 @@ import {tasksModel, taskStatus} from './tasks.model';
 import { createTaskDto } from './create-task.dto';
 import { updateTaskDto } from './update-task.dto';
 import {invalidStatusException} from './Exception/invalidStatus.exception';
+import {InjectRepository} from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Task } from './task.entity';
+import { User } from './user/user.entity';
 
 @Injectable()
 export class TasksService {
 
-    public tasks:tasksModel[] = [];
+    constructor(
+        @InjectRepository(Task)
+        public readonly tasksRepository: Repository<Task>,
+        @InjectRepository(User)
+        public readonly usersRepository: Repository<User>,
+    ){};
 
 
-    public findAllTasks():tasksModel[] 
+    public async findAllTasks():Promise<Task[]> 
     {
-        return this.tasks;
+        return await this.tasksRepository.find();
     }
 
-    public findTaskById(id: string): tasksModel | undefined 
+    public async findTaskById(id: string):Promise<Task | null> 
     {
         console.log(typeof id);
-        return this.tasks.find(task => task.id === parseInt(id));
+        return await this.tasksRepository.findOne({ where: { id: parseInt(id) } });
     }
 
-    public createTask(createTaskDto : createTaskDto) {
-        const task: tasksModel = {
-            id : this.tasks.length + 1,
-            ...createTaskDto
-        };
-        this.tasks.push(task);
+    public async createTask(createTaskDto : createTaskDto) : Promise<Task> {
+        const task = this.tasksRepository.create(createTaskDto);
+        await this.tasksRepository.save(task);
 
         console.log("Task created successfully");
         return task;
     }
 
-    public updateTaskStatus(id: string, status: string) {
+    public async updateTaskStatus(id: string, status: string) : Promise<Task | null> {
         console.log(typeof id);
-        const task = this.findTaskById(id);
+        const task = await this.tasksRepository.findOne({ where: { id: parseInt(id) } });
         if(task){
-            task.status = status as any;
+            task.status = status as taskStatus;
+            await this.tasksRepository.save(task);
             return task;
         }
         return null;
     }
 
-    public deleteTask(id: string) {
-        const taskIndex = this.tasks.findIndex(task => task.id === parseInt(id));
-        if(taskIndex !== -1){
-            this.tasks.splice(taskIndex, 1);
-            return true;
-        }
-        return false;
+    public async deleteTask(id: string) : Promise<boolean> {
+        const taskIndex = await this.tasksRepository.delete({ id: parseInt(id) });
+        return taskIndex.affected ? true : false;
     }
 
-    public updateTask(id : string, updateTaskDto : updateTaskDto) {
-        const task = this.findTaskById(id);
+    public async updateTask(id : string, updateTaskDto : updateTaskDto) : Promise<Task | null> {
+        const task = await this.tasksRepository.findOne({ where: { id: parseInt(id) } });
 
         if(task && !this.isStatusValid(task.status, updateTaskDto.status)) {
-            return new invalidStatusException();
+            throw new invalidStatusException();
         }
 
         if(task){
             task.title = updateTaskDto.title;
             task.description = updateTaskDto.description;
             task.status = updateTaskDto.status;
+
+            await this.tasksRepository.save(task);
             return task;
         }
 

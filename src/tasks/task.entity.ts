@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { taskStatus } from './tasks.model';
+import { User } from './user/user.entity';
 
 @Entity()
 export class Task {
@@ -22,4 +23,7 @@ export class Task {
         default: taskStatus.OPEN,
     })
     status!: taskStatus;
+
+    @ManyToOne(() => User, user => user.tasks)
+    user!: User
 }
